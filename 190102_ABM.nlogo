@@ -27,7 +27,7 @@ end
 ;Functions;
 ;;;;;;;;;;;
 
-to-report calculate-equity-of [a-number]
+to-report calculate-equity-of [a-patch]
   let equity cashflow / discount-rate
   report equity
 end
