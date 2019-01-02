@@ -4,11 +4,13 @@
 
 patches-own [
 cashflow	     	;; the amount of cash flow provided by the externality
-equity-value		;; the amount of equity when converted to a stock when a turtle lands on the patch.
+equity-value		;; the amount of equity when converted to a stock when a turtle lands on the patch
 ]
 
 turtles-own[
 discount-rate		;; the discount rate of the agent
+vision          ;; vision of the turtle, degree of boundedness
+resid-income    ;; residual income, equal to investment?
 ]
 
 ;;;;;;;;;;;;;;;;;;;;
@@ -16,11 +18,25 @@ discount-rate		;; the discount rate of the agent
 ;;;;;;;;;;;;;;;;;;;;
 
 to go
-   calculate-equity
+  calculate-residual-income
+  calculate-equity
+  turtle-move
 end
 
 to calculate-equity
   set equity-value calculate-equity-of patches
+end
+
+to calculate-residual-income
+  set resid-income calculate-resid-inc-of turtles
+end
+
+to turtle-move
+  let move-candidates (patch-set patch-here (patches in-radius vision))
+  let possible-winners move-candidates with-max [equity-value]
+  if any? possible-winners [
+    move-to min-one-of possible-winners [distance myself]
+  ]
 end
 
 ;;;;;;;;;;;
@@ -28,9 +44,18 @@ end
 ;;;;;;;;;;;
 
 to-report calculate-equity-of [a-patch]
-  let equity cashflow / [discount-rate] of turtles-here
+  let equity (cashflow / [discount-rate] of turtles-here) + [resid-income] of turtles-here
   report equity
 end
+
+to-report calculate-resid-inc-of [a-turtle]
+  let rinc cashflow - (discount-rate * equity-value)
+  report rinc
+end
+
+;;;;;;;;
+;Graphs;
+;;;;;;;;
 @#$#@#$#@
 GRAPHICS-WINDOW
 210
