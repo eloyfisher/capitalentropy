@@ -28,7 +28,7 @@ end
 ;;;;;;;;;;;
 
 to-report calculate-equity-of [a-patch]
-  let equity cashflow / discount-rate
+  let equity cashflow / [discount-rate] of turtles-here
   report equity
 end
 @#$#@#$#@
