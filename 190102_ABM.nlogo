@@ -70,7 +70,11 @@ to calculate-equity
 end
 
 to calculate-residual-income
-  set resid-income calculate-resid-inc-of turtles
+  ask patches with [count turtles-here = 1] [
+    ask turtles-here [
+      set resid-income cashflow - (discount-rate * equity-value)
+      ]
+   ]
 end
 
 to turtle-move
@@ -92,11 +96,6 @@ end
 to-report calculate-equity-of [a-patch]
   let equity (cashflow / [discount-rate] of turtles-here) + [resid-income] of turtles-here
   report equity
-end
-
-to-report calculate-resid-inc-of [a-turtle]
-  let rinc cashflow - (discount-rate * equity-value)
-  report rinc
 end
 
 ;;;;;;;;
