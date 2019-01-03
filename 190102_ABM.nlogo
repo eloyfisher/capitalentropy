@@ -2,6 +2,11 @@
 ;Variables;
 ;;;;;;;;;;;
 
+globals[
+  initial-population
+  vision-max
+]
+
 patches-own [
 cashflow	     	;; the amount of cash flow provided by the externality
 equity-value		;; the amount of equity when converted to a stock when a turtle lands on the patch
@@ -12,6 +17,36 @@ discount-rate		;; the discount rate of the agent
 vision          ;; vision of the turtle, degree of boundedness
 resid-income    ;; residual income, equal to investment?
 ]
+
+;;;;;;;;;;;;;;;;;;
+;Setup Procedures;
+;;;;;;;;;;;;;;;;;;
+
+to setup
+  clear-all
+  reset-ticks
+  create-turtles initial-population [turtle-setup]
+  setup-patches
+end
+
+to turtle-setup
+  set color red
+  set shape "circle"
+  move-to one-of patches with [not any? other turtles-here]
+  set discount-rate random-float 1
+  set vision random vision-max
+end
+
+to setup-patches
+  file-open "sugar-map.txt" ; C:\Users\EFISHER\Desktop
+  foreach sort patches [ p ->
+    ask p [
+      set cashflow file-read
+      patch-recolor
+    ]
+  ]
+  file-close
+end
 
 ;;;;;;;;;;;;;;;;;;;;
 ;Runtime Procedures;
@@ -37,6 +72,10 @@ to turtle-move
   if any? possible-winners [
     move-to min-one-of possible-winners [distance myself]
   ]
+end
+
+to patch-recolor
+  set pcolor (yellow + 4.9 - cashflow)
 end
 
 ;;;;;;;;;;;
