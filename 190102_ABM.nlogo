@@ -56,6 +56,13 @@ to go
   calculate-residual-income
   calculate-equity
   turtle-move
+  ask patches [
+    patch-recolor
+  ]
+  ask turtles [
+    if resid-income <= 0 [
+      die]
+  ]
 end
 
 to calculate-equity
