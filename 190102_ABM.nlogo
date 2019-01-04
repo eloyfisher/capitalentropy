@@ -5,11 +5,13 @@
 globals[
   initial-population
   vision-max
+  hurdle-rate
 ]
 
 patches-own [
 cashflow	     	;; the amount of cash flow provided by the externality
 equity-value		;; the amount of equity when converted to a stock when a turtle lands on the patch
+probability     ;; probability of generating an entrepreneur
 ]
 
 turtles-own[
@@ -60,6 +62,7 @@ end
 to go
   calculate-residual-income
   calculate-equity
+  create-entrepreneur
   turtle-move
   ask patches [
     patch-recolor
@@ -68,10 +71,6 @@ to go
     if resid-income <= 0 [
       die]
   ]
-end
-
-to calculate-equity
-  set equity-value calculate-equity-of patches
 end
 
 to calculate-residual-income
@@ -117,6 +116,19 @@ to calculate-residual-income
   ]
 end
 
+to calculate-equity
+  set equity-value calculate-equity-of patches
+end
+
+to create-entrepreneur
+  ask patches [
+    set probability ( max-of-equity-value / calc-local-roundaboutness ) * calc-mean-roundaboutness
+    if probability >= hurdle-rate [
+      sprout 1 [turtle-setup]
+    ]
+  ]
+end
+
 to turtle-move
   let move-candidates (patch-set patch-here (patches in-radius vision))
   let possible-winners move-candidates with-max [equity-value]
@@ -136,6 +148,24 @@ end
 to-report calculate-equity-of [a-patch]
   let equity (cashflow / [discount-rate] of turtles-here) + [resid-income] of turtles-here
   report equity
+end
+
+to-report max-of-equity-value
+  let list-equity (list [equity-value] of patches)
+  let max-equity max list-equity
+  report max-equity
+end
+
+to-report calc-local-roundaboutness
+  let list-eq-value (list [equity-value] of neighbors4)
+  let mean-loc-roundabout mean list-eq-value
+  report mean-loc-roundabout
+end
+
+to-report calc-mean-roundaboutness
+  let max-roundabout (list [equity-value] of patches)
+  let mean-roundabout mean max-roundabout
+  report mean-roundabout
 end
 
 ;;;;;;;;
