@@ -173,9 +173,9 @@ end
 ;;;;;;;;
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
 10
-647
+10
+447
 448
 -1
 -1
@@ -198,6 +198,23 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+BUTTON
+10
+459
+73
+492
+setup
+setup
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?
