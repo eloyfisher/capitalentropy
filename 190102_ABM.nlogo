@@ -16,6 +16,7 @@ turtles-own[
 discount-rate		;; the discount rate of the agent
 vision          ;; vision of the turtle, degree of boundedness
 resid-income    ;; residual income, equal to investment?
+alert?          ;; if true, alert. Otherwise, passive
 ]
 
 ;;;;;;;;;;;;;;;;;;
@@ -35,6 +36,10 @@ to turtle-setup
   move-to one-of patches with [not any? other turtles-here]
   set discount-rate random-float 1
   set vision random vision-max
+  ifelse discount-rate >= 0.25 [
+    set alert? true] [
+    set alert? false
+  ]
 end
 
 to setup-patches
@@ -75,6 +80,41 @@ to calculate-residual-income
       set resid-income cashflow - (discount-rate * equity-value)
       ]
    ]
+  ask patches with [count turtles-here = 2] [
+    ask one-of turtles-here [
+      if alert? [
+        ask other turtles-here [
+          let avg-dr (discount-rate + [discount-rate] of myself) / 2
+          if alert? [
+            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+            ask myself [
+              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+          ]]
+          if not alert? [
+          set resid-income cashflow - (discount-rate * equity-value)
+          ask myself [
+            die
+          ]]
+      ]]
+    ]
+    ask one-of turtles-here [
+      if not alert? [
+        ask other turtles-here [
+          let avg-dr (discount-rate + [discount-rate] of myself) / 2
+          if alert? [
+            die
+            ask myself [
+              set resid-income cashflow - (discount-rate * equity-value)
+            ]
+          ]
+          if not alert? [
+            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+            ask myself [
+              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+          ]]
+      ]]
+    ]
+  ]
 end
 
 to turtle-move
