@@ -83,7 +83,7 @@ to calculate-residual-income
     ask one-of turtles-here [
       if alert? [
         ask other turtles-here [
-          let avg-dr (discount-rate + [discount-rate] of myself) / 2
+          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
           if alert? [
             set resid-income 0.5 * (cashflow + avg-dr * equity-value)
             ask myself [
@@ -92,16 +92,16 @@ to calculate-residual-income
           if not alert? [
           set resid-income cashflow - (discount-rate * equity-value)
           ask myself [
-            die
+            turtle-move
           ]]
       ]]
     ]
     ask one-of turtles-here [
       if not alert? [
         ask other turtles-here [
-          let avg-dr (discount-rate + [discount-rate] of myself) / 2
+          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
           if alert? [
-            die
+            turtle-move
             ask myself [
               set resid-income cashflow - (discount-rate * equity-value)
             ]
