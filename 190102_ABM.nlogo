@@ -45,15 +45,26 @@ to turtle-setup
 end
 
 to setup-patches
-  file-open "sugar-map.txt" ; C:\Users\EFISHER\Desktop
-  foreach sort patches [ p ->
-    ask p [
-      set cashflow file-read
-      patch-recolor
-    ]
+  ask patches [
+    let cf1 50 - distancexy 15 15
+    let cf2 25 - distancexy 60 50
+    ifelse cf1 > cf2
+      [set cashflow cf1]
+      [set cashflow cf2]
+    set pcolor scale-color yellow cashflow 0 50
   ]
-  file-close
 end
+
+;to setup-patches ; this is a procedure that requires a file, not working correctly
+;  file-open "sugar-map.txt" ; C:\Users\EFISHER\Desktop
+;  foreach sort patches [ p ->
+;    ask p [
+;      set cashflow file-read
+;      patch-recolor
+;    ]
+;  ]
+;  file-close
+;end
 
 ;;;;;;;;;;;;;;;;;;;;
 ;Runtime Procedures;
@@ -173,10 +184,10 @@ end
 ;;;;;;;;
 @#$#@#$#@
 GRAPHICS-WINDOW
+9
 10
-10
-447
-448
+1070
+812
 -1
 -1
 13.0
@@ -186,13 +197,13 @@ GRAPHICS-WINDOW
 1
 1
 0
+0
+0
 1
-1
-1
--16
-16
--16
-16
+0
+80
+0
+60
 0
 0
 1
@@ -200,10 +211,10 @@ ticks
 30.0
 
 BUTTON
-10
-459
-73
-492
+1080
+11
+1143
+44
 setup
 setup
 NIL
