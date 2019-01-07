@@ -28,8 +28,15 @@ alert?          ;; if true, alert. Otherwise, passive
 to setup
   clear-all
   reset-ticks
+  initialize-parameters
   create-turtles initial-population [turtle-setup]
   setup-patches
+end
+
+to initialize-parameters
+  set initial-population 20
+  set vision-max 5
+  set hurdle-rate 0.3
 end
 
 to turtle-setup
