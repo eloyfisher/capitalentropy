@@ -34,7 +34,7 @@ to setup
 end
 
 to initialize-parameters
-  set initial-population 20
+  set initial-population 10
   set vision-max 5
   set hurdle-rate 0.3
 end
@@ -53,12 +53,12 @@ end
 
 to setup-patches
   ask patches [
-    let cf1 50 - distancexy 15 15
-    let cf2 25 - distancexy 60 50
+    let cf1 30 - distancexy 10 10
+    let cf2 20 - distancexy 35 25
     ifelse cf1 > cf2
       [set cashflow cf1]
       [set cashflow cf2]
-    set pcolor scale-color yellow cashflow 0 50
+    set pcolor scale-color yellow cashflow 0 40
   ]
 end
 
@@ -191,10 +191,10 @@ end
 ;;;;;;;;
 @#$#@#$#@
 GRAPHICS-WINDOW
-9
-10
-1070
-812
+3
+11
+674
+618
 -1
 -1
 13.0
@@ -208,9 +208,9 @@ GRAPHICS-WINDOW
 0
 1
 0
-80
+50
 0
-60
+45
 0
 0
 1
@@ -218,10 +218,10 @@ ticks
 30.0
 
 BUTTON
-1080
-11
-1143
-44
+681
+12
+744
+45
 setup
 setup
 NIL
