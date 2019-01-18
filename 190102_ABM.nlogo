@@ -35,7 +35,7 @@ end
 
 to initialize-parameters
   set initial-population 10
-  set vision-max 5
+  set vision-max 10
   set hurdle-rate 0.3
 end
 
@@ -78,113 +78,123 @@ end
 ;;;;;;;;;;;;;;;;;;;;
 
 to go
-  calculate-residual-income
+  tick
+;  calculate-residual-income
   calculate-equity
-  create-entrepreneur
+;  create-entrepreneur
   turtle-move
-  ask patches [
-    patch-recolor
-  ]
-  ask turtles [
-    if resid-income <= 0 [
-      die]
-  ]
+  patch-recolor
+;  ask turtles [
+;    if resid-income <= 0 [
+;      die]
+;  ]
 end
 
-to calculate-residual-income
-  ask patches with [count turtles-here = 1] [
-    ask turtles-here [
-      set resid-income cashflow - (discount-rate * equity-value)
-      ]
-   ]
-  ask patches with [count turtles-here = 2] [
-    ask one-of turtles-here [
-      if alert? [
-        ask other turtles-here [
-          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
-          if alert? [
-            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-            ask myself [
-              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-          ]]
-          if not alert? [
-          set resid-income cashflow - (discount-rate * equity-value)
-          ask myself [
-            turtle-move
-          ]]
-      ]]
-    ]
-    ask one-of turtles-here [
-      if not alert? [
-        ask other turtles-here [
-          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
-          if alert? [
-            turtle-move
-            ask myself [
-              set resid-income cashflow - (discount-rate * equity-value)
-            ]
-          ]
-          if not alert? [
-            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-            ask myself [
-              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-          ]]
-      ]]
-    ]
-  ]
-end
+;to calculate-residual-income
+;  ask patches with [count turtles-here = 1] [
+;    ask turtles-here [
+;      set resid-income cashflow - (discount-rate * equity-value)
+;      ]
+;   ]
+;  ask patches with [count turtles-here = 2] [
+;    ask one-of turtles-here [
+;      if alert? [
+;        ask other turtles-here [
+;          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
+;          if alert? [
+;            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+;            ask myself [
+;              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+;          ]]
+;          if not alert? [
+;          set resid-income cashflow - (discount-rate * equity-value)
+;          ask myself [
+;            turtle-move
+;          ]]
+;      ]]
+;    ]
+;    ask one-of turtles-here [
+;      if not alert? [
+;        ask other turtles-here [
+;          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
+;          if alert? [
+;            turtle-move
+;            ask myself [
+;              set resid-income cashflow - (discount-rate * equity-value)
+;            ]
+;          ]
+;          if not alert? [
+;            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+;            ask myself [
+;              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+;          ]]
+;      ]]
+;    ]
+;  ]
+;end
 
 to calculate-equity
-  set equity-value calculate-equity-of patches
+  ask turtles [
+    let my-disc-rate discount-rate
+    let my-resd-inc resid-income
+      ask patches with [count turtles-here = 1] [
+        set equity-value (cashflow / my-disc-rate) + my-resd-inc
+      ]
+      ask patches with [count turtles-here = 0] [
+      let disc-rate [discount-rate] of one-of turtles with-min [distance myself]
+      let resd-inc [resid-income] of one-of turtles with-min [distance myself]
+          set equity-value (cashflow / disc-rate + resd-inc)
+      ]
+   ]
 end
 
-to create-entrepreneur
-  ask patches [
-    set probability ( max-of-equity-value / calc-local-roundaboutness ) * calc-mean-roundaboutness
-    if probability >= hurdle-rate [
-      sprout 1 [turtle-setup]
-    ]
-  ]
-end
+;to create-entrepreneur
+;  ask patches [
+;    set probability ( max-of-equity-value / calc-local-roundaboutness ) * calc-mean-roundaboutness
+;    if probability >= hurdle-rate [
+;      sprout 1 [turtle-setup]
+;    ]
+;  ]
+;end
 
 to turtle-move
-  let move-candidates (patch-set patch-here (patches in-radius vision))
-  let possible-winners move-candidates with-max [equity-value]
-  if any? possible-winners [
-    move-to min-one-of possible-winners [distance myself]
+  ask turtles [
+    let move-candidates (patch-set patch-here (patches in-radius vision))
+    let possible-winners move-candidates with-max [equity-value]
+      if any? possible-winners [
+        move-to min-one-of possible-winners [distance myself]
+    ]
   ]
 end
 
 to patch-recolor
-  set pcolor (yellow + 4.9 - cashflow)
+ask patches [
+    let total cashflow + equity-value
+    set pcolor scale-color yellow total 0 40
+  ]
 end
 
 ;;;;;;;;;;;
 ;Functions;
 ;;;;;;;;;;;
 
-to-report calculate-equity-of [a-patch]
-  let equity (cashflow / [discount-rate] of turtles-here) + [resid-income] of turtles-here
-  report equity
-end
+;to-report max-of-equity-value
+;  let list-equity (list [equity-value] of patches)
+;  let max-equity max list-equity
+;  report max-equity
+;end
 
-to-report max-of-equity-value
-  let list-equity (list [equity-value] of patches)
-  let max-equity max list-equity
-  report max-equity
-end
+;to-report calc-local-roundaboutness
+;  let list-eq-value (list [equity-value] of neighbors4)
+;  let mean-loc-roundabout mean list-eq-value
+;  report mean-loc-roundabout
+;end
 
-to-report calc-local-roundaboutness
-  let list-eq-value (list [equity-value] of neighbors4)
-  let mean-loc-roundabout mean list-eq-value
-  report mean-loc-roundabout
-end
-
-to-report calc-mean-roundaboutness
-  let max-roundabout (list [equity-value] of patches)
-  let mean-roundabout mean max-roundabout
-  report mean-roundabout
-end
+;to-report calc-mean-roundaboutness
+;  let max-roundabout (list [equity-value] of patches)
+;  let mean-roundabout mean max-roundabout
+;  report mean-roundabout
+;end
 
 ;;;;;;;;
 ;Graphs;
@@ -225,6 +235,23 @@ BUTTON
 setup
 setup
 NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+681
+54
+744
+87
+go
+go
+T
 1
 T
 OBSERVER
