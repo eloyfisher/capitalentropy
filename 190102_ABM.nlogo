@@ -9,9 +9,10 @@ globals[
 ]
 
 patches-own [
-cashflow	     	;; the amount of cash flow provided by the externality
-equity-value		;; the amount of equity when converted to a stock when a turtle lands on the patch
-probability     ;; probability of generating an entrepreneur
+cashflow	     	    ;; the amount of cash flow provided by the externality
+equity-value		    ;; the amount of equity when converted to a stock when a turtle lands on the patch
+mean-loc-roundabout ;; local roundabout structure
+hatch-rate          ;; probability of generating an entrepreneur
 ]
 
 turtles-own[
@@ -36,7 +37,7 @@ end
 to initialize-parameters
   set initial-population 10
   set vision-max 10
-  set hurdle-rate 0.3
+  set hurdle-rate 100000
 end
 
 to turtle-setup
@@ -81,9 +82,10 @@ to go
   tick
 ;  calculate-residual-income
   calculate-equity
-;  create-entrepreneur
+  create-entrepreneur
   turtle-move
   patch-recolor
+  calc-local-roundaboutness
 ;  ask turtles [
 ;    if resid-income <= 0 [
 ;      die]
@@ -148,14 +150,16 @@ to calculate-equity
    ]
 end
 
-;to create-entrepreneur
-;  ask patches [
-;    set probability ( max-of-equity-value / calc-local-roundaboutness ) * calc-mean-roundaboutness
-;    if probability >= hurdle-rate [
-;      sprout 1 [turtle-setup]
-;    ]
-;  ]
-;end
+to create-entrepreneur
+  ask patches [
+    if mean-loc-roundabout > 0 [
+      set hatch-rate ( max-of-equity-value / mean-loc-roundabout ) * calc-mean-roundaboutness
+    ]
+    if hatch-rate >= hurdle-rate [
+      sprout 1 [turtle-setup]
+    ]
+  ]
+end
 
 to turtle-move
   ask turtles [
@@ -164,6 +168,12 @@ to turtle-move
       if any? possible-winners [
         move-to min-one-of possible-winners [distance myself]
     ]
+  ]
+end
+
+to calc-local-roundaboutness
+  ask patches [
+    set mean-loc-roundabout max ([equity-value] of neighbors)
   ]
 end
 
@@ -178,23 +188,13 @@ end
 ;Functions;
 ;;;;;;;;;;;
 
-;to-report max-of-equity-value
-;  let list-equity (list [equity-value] of patches)
-;  let max-equity max list-equity
-;  report max-equity
-;end
+to-report max-of-equity-value
+  report max ([equity-value] of patches)
+end
 
-;to-report calc-local-roundaboutness
-;  let list-eq-value (list [equity-value] of neighbors4)
-;  let mean-loc-roundabout mean list-eq-value
-;  report mean-loc-roundabout
-;end
-
-;to-report calc-mean-roundaboutness
-;  let max-roundabout (list [equity-value] of patches)
-;  let mean-roundabout mean max-roundabout
-;  report mean-roundabout
-;end
+to-report calc-mean-roundaboutness
+  report mean ([equity-value] of patches)
+end
 
 ;;;;;;;;
 ;Graphs;
@@ -260,6 +260,28 @@ NIL
 NIL
 NIL
 1
+
+MONITOR
+682
+96
+808
+141
+NIL
+max-of-equity-value
+17
+1
+11
+
+MONITOR
+682
+146
+845
+191
+NIL
+calc-mean-roundaboutness
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
