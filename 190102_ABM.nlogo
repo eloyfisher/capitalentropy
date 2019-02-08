@@ -36,7 +36,7 @@ end
 
 to initialize-parameters
   set initial-population 10
-  set vision-max 10
+  set vision-max 2
   set hurdle-rate 100000
 end
 
@@ -46,10 +46,9 @@ to turtle-setup
   move-to one-of patches with [not any? other turtles-here]
   set discount-rate random-float 1
   set vision random vision-max
-  ifelse discount-rate >= 0.25 [
-    set alert? true] [
-    set alert? false
-  ]
+  ifelse discount-rate >= 0.25
+    [set alert? true]
+    [set alert? false]
 end
 
 to setup-patches
@@ -63,24 +62,13 @@ to setup-patches
   ]
 end
 
-;to setup-patches ; this is a procedure that requires a file, not working correctly
-;  file-open "sugar-map.txt" ; C:\Users\EFISHER\Desktop
-;  foreach sort patches [ p ->
-;    ask p [
-;      set cashflow file-read
-;      patch-recolor
-;    ]
-;  ]
-;  file-close
-;end
-
 ;;;;;;;;;;;;;;;;;;;;
 ;Runtime Procedures;
 ;;;;;;;;;;;;;;;;;;;;
 
 to go
   tick
-;  calculate-residual-income
+  calculate-residual-income
   calculate-equity
   create-entrepreneur
   turtle-move
@@ -92,48 +80,54 @@ to go
 ;  ]
 end
 
-;to calculate-residual-income
-;  ask patches with [count turtles-here = 1] [
-;    ask turtles-here [
-;      set resid-income cashflow - (discount-rate * equity-value)
-;      ]
-;   ]
-;  ask patches with [count turtles-here = 2] [
-;    ask one-of turtles-here [
-;      if alert? [
-;        ask other turtles-here [
-;          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
-;          if alert? [
-;            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-;            ask myself [
-;              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-;          ]]
-;          if not alert? [
-;          set resid-income cashflow - (discount-rate * equity-value)
-;          ask myself [
-;            turtle-move
-;          ]]
-;      ]]
-;    ]
-;    ask one-of turtles-here [
-;      if not alert? [
-;        ask other turtles-here [
-;          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
-;          if alert? [
-;            turtle-move
-;            ask myself [
-;              set resid-income cashflow - (discount-rate * equity-value)
-;            ]
-;          ]
-;          if not alert? [
-;            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-;            ask myself [
-;              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
-;          ]]
-;      ]]
-;    ]
-;  ]
-;end
+to calculate-residual-income
+  ask patches with [count turtles-here = 1] [
+    ask turtles-here [
+      set resid-income cashflow - (discount-rate * equity-value)
+      ]
+   ]
+  ask patches with [count turtles-here = 2] [
+    ask one-of turtles-here [
+      if alert? [
+        ask other turtles-here [
+          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
+          if alert? [
+            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+            ask myself [
+              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+          ]]
+          if not alert? [
+          set resid-income cashflow - (discount-rate * equity-value)
+          ask myself [
+            let move-candidates (patch-set patch-here (patches in-radius vision))
+            let possible-winners move-candidates with-max [equity-value]
+              if any? possible-winners [
+                move-to min-one-of possible-winners [distance myself]
+          ]]
+      ]]
+    ]]
+    ask one-of turtles-here [
+      if not alert? [
+        ask other turtles-here [
+          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
+          if alert? [
+            let move-candidates (patch-set patch-here (patches in-radius vision))
+            let possible-winners move-candidates with-max [equity-value]
+              if any? possible-winners [
+                move-to min-one-of possible-winners [distance myself]]
+            ask myself [
+              set resid-income cashflow - (discount-rate * equity-value)
+            ]
+          ]
+          if not alert? [
+            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+            ask myself [
+              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+          ]]
+      ]]
+    ]
+  ]
+end
 
 to calculate-equity
   ask turtles [
@@ -145,7 +139,7 @@ to calculate-equity
       ask patches with [count turtles-here = 0] [
       let disc-rate [discount-rate] of one-of turtles with-min [distance myself]
       let resd-inc [resid-income] of one-of turtles with-min [distance myself]
-          set equity-value (cashflow / disc-rate + resd-inc)
+          set equity-value (cashflow / disc-rate) + resd-inc
       ]
    ]
 end
@@ -282,6 +276,42 @@ calc-mean-roundaboutness
 17
 1
 11
+
+PLOT
+682
+196
+882
+346
+Population
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot count turtles"
+
+PLOT
+683
+355
+883
+505
+Equity Value
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot mean ([equity-value] of patches)"
 
 @#$#@#$#@
 ## WHAT IS IT?
