@@ -4,7 +4,6 @@
 
 globals[
   initial-population
-  vision-max
   hurdle-rate
 ]
 
@@ -35,9 +34,8 @@ to setup
 end
 
 to initialize-parameters
-  set initial-population 10
-  set vision-max 2
-  set hurdle-rate 100000
+  set initial-population 4
+  set hurdle-rate 50000
 end
 
 to turtle-setup
@@ -74,10 +72,10 @@ to go
   turtle-move
   patch-recolor
   calc-local-roundaboutness
-;  ask turtles [
-;    if resid-income <= 0 [
-;      die]
-;  ]
+  ask turtles [
+    if resid-income <= -3 [
+      die]
+  ]
 end
 
 to calculate-residual-income
@@ -86,43 +84,53 @@ to calculate-residual-income
       set resid-income cashflow - (discount-rate * equity-value)
       ]
    ]
-  ask patches with [count turtles-here = 2] [
+  ask patches with [count turtles-here >= 2] [
     ask one-of turtles-here [
       if alert? [
         ask other turtles-here [
-          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
+          let avg-dr (1 / count turtles-here ) * ([discount-rate] of myself + [discount-rate] of self)
+          let move-candidates (patch-set patch-here (patches in-radius vision))
+          let possible-winners move-candidates with-max [equity-value]
           if alert? [
-            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+            ask self [
+              set resid-income (1 / count turtles-here) * (cashflow - avg-dr * equity-value)
+              if any? possible-winners [
+                move-to min-one-of possible-winners [distance self]
+            ]]
             ask myself [
-              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+              set resid-income (1 / count turtles-here) * (cashflow - avg-dr * equity-value)
+              if any? possible-winners [
+                move-to min-one-of possible-winners [distance self]
           ]]
           if not alert? [
-          set resid-income cashflow - (discount-rate * equity-value)
-          ask myself [
-            let move-candidates (patch-set patch-here (patches in-radius vision))
-            let possible-winners move-candidates with-max [equity-value]
+            ask myself [
+              set resid-income cashflow - (discount-rate * equity-value)
+            ]
+            ask self [
               if any? possible-winners [
-                move-to min-one-of possible-winners [distance myself]
+              move-to min-one-of possible-winners [distance self]
           ]]
       ]]
-    ]]
-    ask one-of turtles-here [
+    ]]]
+    ask other turtles-here [
       if not alert? [
         ask other turtles-here [
-          let avg-dr 0.5 * (discount-rate + [discount-rate] of myself)
+          let avg-dr (1 / count turtles-here) * ([discount-rate] of myself + [discount-rate] of self)
+          let move-candidates (patch-set patch-here (patches in-radius vision))
+          let possible-winners move-candidates with-max [equity-value]
           if alert? [
-            let move-candidates (patch-set patch-here (patches in-radius vision))
-            let possible-winners move-candidates with-max [equity-value]
-              if any? possible-winners [
-                move-to min-one-of possible-winners [distance myself]]
-            ask myself [
+           ask myself [
+                if any? possible-winners [
+                  move-to min-one-of possible-winners [distance myself]]]
+            ask self [
               set resid-income cashflow - (discount-rate * equity-value)
             ]
           ]
           if not alert? [
-            set resid-income 0.5 * (cashflow + avg-dr * equity-value)
             ask myself [
-              set resid-income 0.5 * (cashflow + avg-dr * equity-value)
+              set resid-income (1 / count turtles-here) * (cashflow - avg-dr * equity-value)]
+            ask self [
+              set resid-income (1 / count turtles-here) * (cashflow - avg-dr * equity-value)
           ]]
       ]]
     ]
@@ -148,10 +156,9 @@ to create-entrepreneur
   ask patches [
     if mean-loc-roundabout > 0 [
       set hatch-rate ( max-of-equity-value / mean-loc-roundabout ) * calc-mean-roundaboutness
-    ]
-    if hatch-rate >= hurdle-rate [
-      sprout 1 [turtle-setup]
-    ]
+      if hatch-rate >= hurdle-rate
+        [sprout 1 [turtle-setup]]
+     ]
   ]
 end
 
@@ -167,7 +174,7 @@ end
 
 to calc-local-roundaboutness
   ask patches [
-    set mean-loc-roundabout max ([equity-value] of neighbors)
+    set mean-loc-roundabout mean ([equity-value] of neighbors)
   ]
 end
 
@@ -186,13 +193,21 @@ to-report max-of-equity-value
   report max ([equity-value] of patches)
 end
 
+to-report min-of-equity-value
+  report min ([equity-value] of patches)
+end
+
 to-report calc-mean-roundaboutness
   report mean ([equity-value] of patches)
 end
 
-;;;;;;;;
-;Graphs;
-;;;;;;;;
+to-report prop-alert
+  report count turtles with [alert?] / (count turtles with [alert?] + count turtles with [not alert?] + 0.0000000001)
+end
+
+to-report entropy
+  report (calc-mean-roundaboutness / (count turtles + 0.000000001)) + ln((max-of-equity-value - min-of-equity-value + 0.0000000001) / (count turtles + 0.0000000001))
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 3
@@ -312,6 +327,75 @@ false
 "" ""
 PENS
 "default" 1.0 0 -16777216 true "" "plot mean ([equity-value] of patches)"
+
+PLOT
+889
+198
+1089
+348
+Residual Income
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot sum ([resid-income] of turtles)"
+
+PLOT
+890
+354
+1090
+504
+Proportion alert
+NIL
+NIL
+0.0
+10.0
+0.0
+1.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot prop-alert"
+
+SLIDER
+684
+511
+856
+544
+vision-max
+vision-max
+0
+50
+50.0
+1
+1
+NIL
+HORIZONTAL
+
+PLOT
+1095
+198
+1295
+348
+Entropy
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -16777216 true "" "plot entropy"
 
 @#$#@#$#@
 ## WHAT IS IT?
@@ -659,6 +743,20 @@ NetLogo 6.0.4
 @#$#@#$#@
 @#$#@#$#@
 @#$#@#$#@
+<experiments>
+  <experiment name="experiment" repetitions="100" runMetricsEveryStep="true">
+    <setup>setup</setup>
+    <go>go</go>
+    <timeLimit steps="100"/>
+    <exitCondition>count turtles &gt;= 50</exitCondition>
+    <metric>count turtles</metric>
+    <metric>sum ([resid-income] of turtles)</metric>
+    <metric>entropy</metric>
+    <metric>mean ([equity-value] of patches)</metric>
+    <metric>prop-alert</metric>
+    <steppedValueSet variable="vision-max" first="1" step="1" last="50"/>
+  </experiment>
+</experiments>
 @#$#@#$#@
 @#$#@#$#@
 default
